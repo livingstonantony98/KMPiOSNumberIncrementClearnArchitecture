@@ -12,6 +12,8 @@ struct ContentView: View {
     @State private var tapCount = 0
     @State private var maxAttempts = 10
     @State private var showError = false
+    @State private var isLoading = false
+    @State private var progress = 0.0
     
     var body: some View {
         
@@ -31,11 +33,22 @@ struct ContentView: View {
             }
             
             Spacer()
-            Text("Count: \(tapCount)")
-                .bold()
-                .font(.largeTitle)
-                .opacity(showError ? 0.3 : 1.0)
-               
+            
+            if isLoading {
+                VStack {
+                    Text("Loading...")
+                    ProgressView()
+                        .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                        .frame(width: 200)
+                }
+            }else{
+                Text("Count: \(tapCount)")
+                    .bold()
+                    .font(.largeTitle)
+                    .opacity(showError ? 0.3 : 1.0)
+                
+            }
+            
             
             
             if showError  {
@@ -53,16 +66,24 @@ struct ContentView: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
-            
+                
             }
             Spacer()
             
             Button(action: {
                 if tapCount < maxAttempts {
-                    tapCount += 1
-                    if tapCount == maxAttempts {
-                        showError = true
+                    
+                    isLoading = true
+                    Task{
+                        try await Task.sleep(for: .seconds(1))
+                        tapCount += 1
+                        isLoading = false
+                        
+                        if tapCount == maxAttempts {
+                            showError = true
+                        }
                     }
+                    
                 }
             }) {
                 Text("TAP TO INCREASE")
