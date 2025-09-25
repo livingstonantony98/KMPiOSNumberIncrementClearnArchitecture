@@ -88,11 +88,11 @@ struct ContentView: View {
             }) {
                 Text("TAP TO INCREASE")
                     .padding()
-                    .background(tapCount < maxAttempts ? Color.blue : Color.gray)
+                    .background((tapCount < maxAttempts && !isLoading) ? Color.blue : Color.gray)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .disabled(tapCount >= maxAttempts)
+            .disabled(tapCount >= maxAttempts || isLoading)
             .padding(.bottom, 20)
         }
         
