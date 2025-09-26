@@ -30,7 +30,7 @@ class CounterViewModel: ObservableObject {
             tapCount: state.tapCount,
             maxAttempts: state.maxAttempts,
             status: .loading,
-            progress: 0.0
+            
         )
         
         Task{
@@ -46,11 +46,11 @@ class CounterViewModel: ObservableObject {
                 }
                 
                 state = CounterState(
-                                    tapCount: newCount,
-                                    maxAttempts: state.maxAttempts,
-                                    status: newStatus,
-                                    progress: 0.0
-                                )
+                    tapCount: newCount,
+                    maxAttempts: state.maxAttempts,
+                    status: newStatus,
+                    
+                )
             }
         }
     }
