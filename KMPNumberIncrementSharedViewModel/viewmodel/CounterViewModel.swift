@@ -7,55 +7,77 @@
 
 import Combine
 import Foundation
+import Foundation
 
+@MainActor
 class CounterViewModel: ObservableObject {
-    
     @Published private(set) var state: CounterState = .initial
     
+    private let repository: CounterRepository
     
-    func processIntent(_ intent: CounterIntent){
+    init(repository: CounterRepository) {
+        self.repository = repository
+    }
+    
+    func send(intent: CounterIntent) {
         switch intent {
         case .increaseCount:
-            handleIncreaseCount()
+            increment()
         case .reset:
-            handleReset()
+            reset()
         }
     }
     
-    private func handleIncreaseCount(){
-        
-        guard state.status != .loading, state.tapCount < state.maxAttempts else { return }
-        
-        state = CounterState(
-            tapCount: state.tapCount,
-            maxAttempts: state.maxAttempts,
-            status: .loading,
+    private func increment() {
+        Task {
+            updateState { $0.copy(status: .loading) }
             
-        )
-        
-        Task{
-            
-            try? await Task.sleep(for: .seconds(1))
-            
-            await MainActor.run {
-                let newCount  = state.tapCount + 1
-                var newStatus: CounterState.Status = .ready
-                
-                if newCount >= state.maxAttempts {
-                    newStatus = .error
+            do {
+                let newValue = try await repository.increment()
+                if newValue >= state.maxAttempts {
+                    updateState { _ in
+                        CounterState(
+                            tapCount: newValue,
+                            maxAttempts: state.maxAttempts,
+                            status: .error // reached limit
+                        )
+                    }
+                } else {
+                    updateState { _ in
+                        CounterState(
+                            tapCount: newValue,
+                            maxAttempts: state.maxAttempts,
+                            status: .ready
+                        )
+                    }
                 }
-                
-                state = CounterState(
-                    tapCount: newCount,
+            } catch {
+                updateState { _ in
+                    CounterState(
+                        tapCount: state.tapCount,
+                        maxAttempts: state.maxAttempts,
+                        status: .error
+                    )
+                }
+            }
+        }
+    }
+    
+    private func reset() {
+        Task {
+            let newValue = await repository.reset()
+            updateState { _ in
+                CounterState(
+                    tapCount: newValue,
                     maxAttempts: state.maxAttempts,
-                    status: newStatus,
-                    
+                    status: .ready
                 )
             }
         }
     }
     
-    private func handleReset(){
-        state = .initial
+    private func updateState(_ reducer: (CounterState) -> CounterState) {
+        state = reducer(state)
     }
 }
+

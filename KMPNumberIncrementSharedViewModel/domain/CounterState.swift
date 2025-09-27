@@ -23,3 +23,17 @@ struct CounterState {
     )
 }
 
+
+extension CounterState {
+    func copy(
+        tapCount: Int? = nil,
+        maxAttempts: Int? = nil,
+        status: Status? = nil
+    ) -> CounterState {
+        CounterState(
+            tapCount: tapCount ?? self.tapCount,
+            maxAttempts: maxAttempts ?? self.maxAttempts,
+            status: status ?? self.status
+        )
+    }
+}

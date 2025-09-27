@@ -11,7 +11,10 @@ import SwiftUI
 struct KMPNumberIncrementSharedViewModelApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            let service = DummyCounterService()
+            let repo = CounterRepositoryImpl(service: service)
+            let vm = CounterViewModel(repository: repo)
+            ContentView(viewModel: vm)
         }
     }
 }

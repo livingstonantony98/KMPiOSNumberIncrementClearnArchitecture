@@ -9,7 +9,11 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @StateObject private var viewModel = CounterViewModel()
+    @StateObject private var viewModel: CounterViewModel
+    
+    init(viewModel: CounterViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
     
     var body: some View {
         
@@ -56,7 +60,7 @@ struct ContentView: View {
                         .foregroundColor(.red)
                     
                     Button("Reset") {
-                        viewModel.processIntent(.reset)
+                        viewModel.send(intent: .reset)
                     }
                     .padding()
                     .background(Color.red)
@@ -68,7 +72,7 @@ struct ContentView: View {
             Spacer()
             
             Button(action: {
-                viewModel.processIntent(.increaseCount)
+                viewModel.send(intent: .increaseCount)
             }) {
                 Text("TAP TO INCREASE")
                     .padding()
@@ -89,5 +93,8 @@ struct ContentView: View {
 
 
 #Preview {
-    ContentView()
+    let service = DummyCounterService()
+    let repo = CounterRepositoryImpl(service: service)
+    let vm = CounterViewModel(repository: repo)
+    ContentView(viewModel: vm)
 }
